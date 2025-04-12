@@ -75,9 +75,9 @@ def generate_pdf(data, images=[]):
     normal_style.leading = 15
 
     # Logo (pastikan file ada di direktori yang sama dengan script)
-    logo_path1 = "BUMN.png"
-    logo_path2 = "DEFEND.png"
-    logo_path3 = "PAL.png"
+    logo_path1 = "header/BUMN.png"
+    logo_path2 = "header/DEFEND.png"
+    logo_path3 = "header/PAL.png"
 
     try:
         logo1 = Image(logo_path1)
