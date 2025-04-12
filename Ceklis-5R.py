@@ -76,7 +76,7 @@ def generate_pdf(data, images=[]):
 
     # Logo (pastikan file ada di direktori yang sama dengan script)
     logo_path1 = "header/BUMN.png"
-    logo_path2 = "header/DEFEND.png"
+    logo_path2 = "header/DEFEND ID.png"
     logo_path3 = "header/PAL.png"
 
     try:
@@ -323,12 +323,12 @@ def main():
         for category, questions in categories.items():
             st.subheader(category)
             
-            for i, question in enumerate(questions, 1):
-                st.write(f"{i}. {question}")
+            for question in questions:
+                st.write(question)
                 score = st.radio(
                     "",
                     options=["Ya", "Tidak"],
-                    key=f"{category}_{i}",
+                    key=f"{category}_{question}",
                     horizontal=True,
                     index=None
                 )
