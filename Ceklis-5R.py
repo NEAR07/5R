@@ -324,15 +324,16 @@ def main():
             st.subheader(category)
             
             for question in questions:
-                st.write(question)
+                st.write(question) 
                 score = st.radio(
                     "",
                     options=["Ya", "Tidak"],
-                    key=f"{category}_{question}",
+                    key=f"{category}_{question}",  
                     horizontal=True,
                     index=None
                 )
-                scores[f"{category}_{i}"] = 1 if score == "Ya" else 0 if score == "Tidak" else -1
+                scores[f"{category}_{question}"] = 1 if score == "Ya" else 0 if score == "Tidak" else -1
+
         
         if st.button("Submit Audit"):
             if -1 in scores.values():
