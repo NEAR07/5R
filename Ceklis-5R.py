@@ -14,7 +14,7 @@ from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, WebRtcMode
 import cv2
 import av
 
-# Data 5R
+
 categories = {
     "RINGKAS": [
         "Menyingkirkan barang yang tidak diperlukan di area kerja",
@@ -58,7 +58,7 @@ def create_download_link(val, filename):
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}">Download PDF</a>'
 
 def generate_pdf(data, images=[]):
-    # Buat buffer untuk menyimpan PDF
+  
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=2 * mm)
     elements = []
@@ -74,7 +74,7 @@ def generate_pdf(data, images=[]):
     normal_style.fontSize = 10
     normal_style.leading = 15
 
-    # Logo (pastikan file ada di direktori yang sama dengan script)
+  
     logo_path1 = "header/BUMN.png"
     logo_path2 = "header/DEFEND ID.png"
     logo_path3 = "header/PAL.png"
@@ -110,7 +110,7 @@ def generate_pdf(data, images=[]):
     divisi_style.spaceAfter = 2
     # elements.append(Paragraph("DIVISI DESAIN", divisi_style))
 
-    # Basic info
+
     basic_info_data = [
         ["Tanggal Audit", ":", data.get('date', 'N/A')],
         ["Auditor", ":", data.get('auditor', 'N/A')],
@@ -136,7 +136,7 @@ def generate_pdf(data, images=[]):
 
     elements.append(Spacer(1, 5 * mm))
 
-    # Tabel audit
+
     table_data = [["5R", "NO.", "IMPLEMENTASI", "YA", "TIDAK"]]
     scores = data.get('scores', {})
     for category, items in categories.items():
@@ -166,7 +166,7 @@ def generate_pdf(data, images=[]):
     ]))
     elements.append(table)
 
-    # Tanda tangan
+
     elements.append(Spacer(1, 1 * mm))
     signature_data = [
         [""],
@@ -189,7 +189,7 @@ def generate_pdf(data, images=[]):
     ]))
     elements.append(wrapper_signature_table)
 
-    # Gambar
+
     if images:
         elements.append(Spacer(1, 15 * mm))
         elements.append(Paragraph("Bukti Foto:", styles["Heading3"]))
@@ -201,7 +201,7 @@ def generate_pdf(data, images=[]):
             except Exception as e:
                 elements.append(Paragraph(f"Gagal memuat gambar: {img_path} ({str(e)})", normal_style))
 
-    # Buat PDF
+
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
     buffer.close()
@@ -222,7 +222,7 @@ class VideoTransformer(VideoTransformerBase):
 def main():
     st.set_page_config(page_title="Audit 5R", layout="wide")
     
-    # CSS untuk mengurangi jarak antara pertanyaan dan opsi
+
     st.markdown("""
         <style>
         .stRadio > div {
@@ -257,10 +257,10 @@ def main():
         with col2:
             biro = st.text_input("Biro")
             
-            # Opsi unggah gambar dari file
+            
             uploaded_files = st.file_uploader("Unggah Bukti Foto", accept_multiple_files=True, type=['png', 'jpg', 'jpeg'])
             
-            # Opsi ambil foto dari kamera
+            
             st.markdown('<p class="camera-label">Ambil Foto dari Kamera</p>', unsafe_allow_html=True)
             if 'show_camera' not in st.session_state:
                 st.session_state['show_camera'] = False
@@ -287,13 +287,13 @@ def main():
                             if 'camera_images' not in st.session_state:
                                 st.session_state['camera_images'] = []
                             st.session_state['camera_images'].append(path)
-                            st.session_state['show_camera'] = False  # Tutup kamera setelah ambil foto
+                            st.session_state['show_camera'] = False  
                             st.success("Foto berhasil diambil!")
             
-            # Tampilkan foto yang sudah diambil dari kamera
+  
             if 'camera_images' in st.session_state and st.session_state['camera_images']:
                 st.write("Foto dari Kamera:")
-                cols = st.columns(4)  # Tampilkan 4 foto per baris
+                cols = st.columns(4) 
                 for idx, img_path in enumerate(st.session_state['camera_images']):
                     with cols[idx % 4]:
                         st.image(img_path, width=150)
@@ -342,19 +342,19 @@ def main():
                 st.session_state['scores'] = scores
                 st.success("Audit berhasil disimpan!")
                 
-                # Kumpulkan semua gambar
+              
                 image_paths = []
                 if uploaded_files:
                     for i, uploaded_file in enumerate(uploaded_files):
-                        image = PILImage.open(uploaded_file).convert('RGB')  # Konversi ke RGB untuk mendukung PNG
+                        image = PILImage.open(uploaded_file).convert('RGB')  
                         path = f"temp_img_{i}.jpg"
-                        image.save(path, 'JPEG')  # Simpan sebagai JPEG
+                        image.save(path, 'JPEG') 
                         image_paths.append(path)
                 
                 if 'camera_images' in st.session_state:
                     image_paths.extend(st.session_state['camera_images'])
                 
-                # Generate PDF
+      
                 pdf_data = {
                     **st.session_state['form_data'],
                     'scores': st.session_state['scores']
@@ -363,7 +363,7 @@ def main():
                 
                 st.markdown(create_download_link(pdf, "Hasil_Audit_5R.pdf"), unsafe_allow_html=True)
 
-                # Bersihkan file sementara
+                
                 for path in image_paths:
                     if "temp_img" in path and os.path.exists(path):
                         os.remove(path)
