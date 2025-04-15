@@ -6,6 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.platypus import Image as ReportLabImage
 import base64
 from PIL import Image as PILImage
 import io
@@ -58,7 +59,6 @@ def create_download_link(val, filename):
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}">Download PDF</a>'
 
 def generate_pdf(data, images=[]):
-  
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=2 * mm)
     elements = []
@@ -74,7 +74,7 @@ def generate_pdf(data, images=[]):
     normal_style.fontSize = 10
     normal_style.leading = 15
 
-  
+    # Logo
     logo_path1 = "header/BUMN.png"
     logo_path2 = "header/DEFEND ID.png"
     logo_path3 = "header/PAL.png"
@@ -97,20 +97,10 @@ def generate_pdf(data, images=[]):
     except Exception as e:
         elements.append(Paragraph(f"Gagal memuat logo: {str(e)}", normal_style))
 
-    elements.append(Spacer(1, 5 * mm)) 
-
+    elements.append(Spacer(1, 5 * mm))
     elements.append(Paragraph("CHECKLIST AUDIT 5R - DIVISI DESAIN", title_style))
 
-    divisi_style = styles["Heading1"]
-    divisi_style.fontName = 'Helvetica-Bold'
-    divisi_style.fontSize = 14
-    divisi_style.alignment = 1
-    divisi_style.leading = 25
-    divisi_style.spaceBefore = 0
-    divisi_style.spaceAfter = 2
-    # elements.append(Paragraph("DIVISI DESAIN", divisi_style))
-
-
+    # Informasi Dasar
     basic_info_data = [
         ["Tanggal Audit", ":", data.get('date', 'N/A')],
         ["Auditor", ":", data.get('auditor', 'N/A')],
@@ -136,19 +126,27 @@ def generate_pdf(data, images=[]):
 
     elements.append(Spacer(1, 5 * mm))
 
-
+    # Tabel Penilaian
     table_data = [["5R", "NO.", "IMPLEMENTASI", "YA", "TIDAK"]]
     scores = data.get('scores', {})
     for category, items in categories.items():
         for i, question in enumerate(items, 1):
-            score_key = f"{category}_{i}"
+            score_key = f"{category}_{question}"  # Sesuaikan dengan kunci di Streamlit
             score = scores.get(score_key, -1)
+            try:
+                checkmark = ReportLabImage('check.png', width=4*mm, height=4*mm) if score == 1 else ""
+            except FileNotFoundError:
+                checkmark = "Ya"  # Fallback jika gambar tidak ditemukan
+            try:
+                crossmark = ReportLabImage('check.png', width=4*mm, height=4*mm) if score == 0 else ""
+            except FileNotFoundError:
+                crossmark = "Tidak"  # Fallback jika gambar tidak ditemukan
             if i == 1:
-                table_data.append([category, str(i), question, "✓" if score == 1 else "", "✓" if score == 0 else ""])
+                table_data.append([category, str(i), question, checkmark, crossmark])
             else:
-                table_data.append(["", str(i), question, "✓" if score == 1 else "", "✓" if score == 0 else ""])
+                table_data.append(["", str(i), question, checkmark, crossmark])
 
-    col_widths = [45, 20, 260, 80, 100]
+    col_widths = [45, 20, 260, 80, 80]  # Sesuaikan lebar kolom untuk gambar
     table = Table(table_data, colWidths=col_widths, repeatRows=1)
     table.setStyle(TableStyle([
         ('FONT', (0, 0), (-1, -1), 'Helvetica', 8),
@@ -166,7 +164,7 @@ def generate_pdf(data, images=[]):
     ]))
     elements.append(table)
 
-
+    # Tanda Tangan
     elements.append(Spacer(1, 1 * mm))
     signature_data = [
         [""],
@@ -189,7 +187,7 @@ def generate_pdf(data, images=[]):
     ]))
     elements.append(wrapper_signature_table)
 
-
+    # Bukti Foto
     if images:
         elements.append(Spacer(1, 15 * mm))
         elements.append(Paragraph("Bukti Foto:", styles["Heading3"]))
@@ -200,7 +198,6 @@ def generate_pdf(data, images=[]):
                 elements.append(Spacer(1, 5 * mm))
             except Exception as e:
                 elements.append(Paragraph(f"Gagal memuat gambar: {img_path} ({str(e)})", normal_style))
-
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
